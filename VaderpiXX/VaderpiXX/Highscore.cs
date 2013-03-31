@@ -17,10 +17,23 @@ namespace VaderpiXX
 
         public Highscore(string csvText)
         {
+            if (csvText == null)
+            {
+                this.name = "UNKNOWN";
+                this.score = 0;
+                this.level = 1;
+                return;
+            }
+
             string[] s = csvText.Split(',');
 
             if (s.Length != 3)
-                throw new FormatException("CSV highscore not in the right format.");
+            {
+                this.name = "UNKNOWN";
+                this.score = 0;
+                this.level = 1;
+                return;
+            }
 
             this.Name = s[0];
             this.score = Int64.Parse(s[1]);

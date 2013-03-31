@@ -43,9 +43,12 @@ namespace VaderpiXX
         private Rectangle settingsDestination = new Rectangle(250, 410,
                                                           300, 50);
 
+        private bool isReviewDisplayed = true;
+        private Rectangle reviewSource = new Rectangle(400, 800,
+                                                       100, 100);
         private Rectangle moreGamesSource = new Rectangle(400, 900,
                                                        100, 100);
-        private Rectangle moreGamesDestination = new Rectangle(10, 380,
+        private Rectangle moreGamesOrReviewDestination = new Rectangle(10, 380,
                                                             100, 100);
 
         private Rectangle helpSource = new Rectangle(300, 800,
@@ -68,11 +71,14 @@ namespace VaderpiXX
         private const string HighscoresAction = "Highscores";
         private const string SettingsAction = "Settings";
         private const string HelpAction = "Help";
-        private const string ReviewAction = "Review";
+        private const string MoreGamesOrReviewAction = "MoreGamesOrReview";
 
-        private MarketplaceSearchTask searchTask = new MarketplaceSearchTask();
+        private MarketplaceSearchTask searchTask;
+        private MarketplaceReviewTask reviewTask;
 
         private const string SEARCH_TERM = "Benjamin Sautermeister";
+
+        private Random rand = new Random();
 
         #endregion
 
@@ -82,6 +88,8 @@ namespace VaderpiXX
         {
             this.texture = spriteSheet;
             this.gameInput = input;
+
+            isReviewDisplayed = rand.Next(2) == 0;
         }
 
         #endregion
@@ -106,9 +114,9 @@ namespace VaderpiXX
                                            GestureType.Tap,
                                            helpDestination);
 
-            gameInput.AddTouchGestureInput(ReviewAction,
+            gameInput.AddTouchGestureInput(MoreGamesOrReviewAction,
                                            GestureType.Tap,
-                                           moreGamesDestination);
+                                           moreGamesOrReviewDestination);
         }
 
         public void Update(GameTime gameTime)
@@ -141,20 +149,10 @@ namespace VaderpiXX
                              highscoresSource,
                              Color.Lime * opacity);
 
-            if (InstructionManager.HasDoneInstructions)
-            {
-                spriteBatch.Draw(texture,
-                                 instructionsDestination,
-                                 instructionsSource,
-                                 Color.Lime * opacity);
-            }
-            else
-            {
-                spriteBatch.Draw(texture,
-                                 instructionsDestination,
-                                 instructionsSource,
-                                 Color.Lime * opacity * (0.25f + (float)(Math.Pow(Math.Sin(time), 2.0f)) * 0.75f));
-            }
+            spriteBatch.Draw(texture,
+                                instructionsDestination,
+                                instructionsSource,
+                                Color.Lime * opacity);
 
             spriteBatch.Draw(texture,
                              helpDestination,
@@ -166,10 +164,20 @@ namespace VaderpiXX
                              settingsSource,
                              Color.Lime * opacity);
 
-            spriteBatch.Draw(texture,
-                             moreGamesDestination,
+            if (isReviewDisplayed)
+            {
+                spriteBatch.Draw(texture,
+                             moreGamesOrReviewDestination,
+                             reviewSource,
+                             Color.Lime * opacity);
+            }
+            else
+            {
+                spriteBatch.Draw(texture,
+                             moreGamesOrReviewDestination,
                              moreGamesSource,
                              Color.Lime * opacity);
+            }
         }
 
         private void handleTouchInputs()
@@ -199,11 +207,20 @@ namespace VaderpiXX
             {
                 this.lastPressedMenuItem = MenuItems.Settings;
             }
-            // Settings
-            else if (gameInput.IsPressed(ReviewAction))
+            // More games or review
+            else if (gameInput.IsPressed(MoreGamesOrReviewAction))
             {
-                searchTask.SearchTerms = SEARCH_TERM;
-                searchTask.Show();
+                if (isReviewDisplayed)
+                {
+                    reviewTask = new MarketplaceReviewTask();
+                    reviewTask.Show();
+                }
+                else
+                {
+                    searchTask = new MarketplaceSearchTask();
+                    searchTask.SearchTerms = SEARCH_TERM;
+                    searchTask.Show();
+                }
             }
             else
             {
@@ -221,6 +238,8 @@ namespace VaderpiXX
             this.opacity = Single.Parse(reader.ReadLine());
             this.isActive = Boolean.Parse(reader.ReadLine());
             this.time = Single.Parse(reader.ReadLine());
+
+            this.isReviewDisplayed = Boolean.Parse(reader.ReadLine());
         }
 
         public void Deactivated(StreamWriter writer)
@@ -229,6 +248,8 @@ namespace VaderpiXX
             writer.WriteLine(opacity);
             writer.WriteLine(isActive);
             writer.WriteLine(time);
+
+            writer.WriteLine(isReviewDisplayed);
         }
 
         #endregion

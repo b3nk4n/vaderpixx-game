@@ -306,18 +306,19 @@ namespace VaderpiXX
         {
             if (musicOn)
             {
-                if (musicFadeValue <= 1.0f)
+                if (musicFadeValue < 1.0f)
                     musicFadeValue += 0.025f;
+
             }
             else
             {
-                if (musicFadeValue >= 0.0f)
+                if (musicFadeValue > 0.25f)
                     musicFadeValue -= 0.025f;
             }
 
 
 
-            if (musicFadeValue >= 0.0f && musicFadeValue <= 1.0f)
+            if (musicFadeValue >= 0.25f && musicFadeValue <= 1.0f)
             {
                 float val = settings.GetMusicValue();
                 MediaPlayer.Volume = val * musicFadeValue;

@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Deployment xmlns="http://schemas.microsoft.com/windowsphone/2009/deployment" AppPlatformVersion="7.1">
-  <App xmlns="" ProductID="{4663d104-4d94-403b-ba7b-8d9e1b231cf3}" Title="VaderpiXX" RuntimeType="XNA" Version="1.0.0.0" Genre="Apps.Games" Author="bsautermeister" Description="Revival of the legendary retro game" Publisher="Benjamin Sautermeister">
+  <App xmlns="" ProductID="{4663d104-4d94-403b-ba7b-8d9e1b231cf3}" Title="VaderpiXX" RuntimeType="XNA" Version="1.2.0.0" Genre="Apps.Games" Author="bsautermeister" Description="Revival of the legendary retro game" Publisher="Benjamin Sautermeister">
     <IconPath IsRelative="true" IsResource="false"></IconPath>
     <Capabilities>
       <Capability Name="ID_CAP_NETWORKING" />

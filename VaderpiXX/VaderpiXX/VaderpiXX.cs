@@ -52,7 +52,7 @@ namespace VaderpiXX
         private const string MusicCreatorText = "QBIG";
         private const string CreatorText = "BY B. SAUTERMEISTER";
 
-        enum GameStates { TitleScreen, MainMenu, Highscores, Inscructions, Help, Settings, Playing, Paused, PlayerDead, GameOver, Leaderboards, Submittion, WaitForNextRound };
+        enum GameStates { TitleScreen, MainMenu, Highscores, Instructions, Help, Settings, Playing, Paused, PlayerDead, GameOver, Leaderboards, Submittion, WaitForNextRound };
         GameStates gameState = GameStates.TitleScreen;
         GameStates stateBeforePaused;
         Texture2D spriteSheet;
@@ -172,7 +172,7 @@ namespace VaderpiXX
 #if DEBUG
             AdGameComponent.Initialize(this, "test_client");
 #else
-            AdGameComponent.Initialize(this, "91771e9f-da41-44b0-8a09-3caa4a8dcc24");
+            AdGameComponent.Initialize(this, "77b21a31-49c1-476a-8b24-1ba552c66fed");
             System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
             System.Threading.Thread.CurrentThread.CurrentUICulture = new System.Globalization.CultureInfo("en-US");
 #endif       
@@ -226,7 +226,7 @@ namespace VaderpiXX
 #if DEBUG
             bannerAd = adGameComponent.CreateAd("Image480_80", new Rectangle(160, 0, 480, 80));
 #else
-            bannerAd = adGameComponent.CreateAd("84132", new Rectangle(160, 0, 480, 80));
+            bannerAd = adGameComponent.CreateAd("92278", new Rectangle(160, 0, 480, 80));
 #endif       
             bannerAd.BorderEnabled = false;
 
@@ -428,6 +428,8 @@ namespace VaderpiXX
 
                         submissionManager.Deactivated(writer);
 
+                        settingsManager.Deactivated(writer);
+
                         writer.Close();
                     }
                 }
@@ -444,7 +446,7 @@ namespace VaderpiXX
 
             if ((gameState == GameStates.Playing && touchedToStart)
                 || gameState == GameStates.PlayerDead
-                || gameState == GameStates.Inscructions)
+                || gameState == GameStates.Instructions)
             {
                 stateBeforePaused = gameState;
                 gameState = GameStates.Paused;
@@ -547,6 +549,8 @@ namespace VaderpiXX
 
                                 submissionManager.Activated(reader);
 
+                                settingsManager.Activated(reader);
+
                                 reader.Close();
                             }
                         }
@@ -639,20 +643,31 @@ namespace VaderpiXX
                             touchedToStart = false;
                             getReadyTimer = 0.0f;
                             playerManager.CanFire = true;
-                            gameState = GameStates.Playing;
+                            if (instructionManager.HasDoneInstructions)
+                            {
+                                gameState = GameStates.Playing;
+                            }
+                            else
+                            {
+                                instructionManager.Reset();
+                                instructionManager.IsAutostarted = true;
+                                gameState = GameStates.Instructions;
+                            }
                             break;
 
                         case MainMenuManager.MenuItems.Highscores:
+                            leaderboardManager.Receive();
                             gameState = GameStates.Highscores;
                             break;
 
                         case MainMenuManager.MenuItems.Instructions:
                             resetGame();
                             instructionManager.Reset();
+                            instructionManager.IsAutostarted = false;
                             hud.Update(playerManager.PlayerScore,
                                        playerManager.LivesRemaining,
                                        levelManager.CurrentLevel);
-                            gameState = GameStates.Inscructions;
+                            gameState = GameStates.Instructions;
                             break;
 
                         case MainMenuManager.MenuItems.Help:
@@ -721,7 +736,7 @@ namespace VaderpiXX
 
                     break;
 
-                case GameStates.Inscructions:
+                case GameStates.Instructions:
 
                     starFieldManager1.Update(gameTime);
                     starFieldManager2.Update(gameTime);
@@ -736,8 +751,25 @@ namespace VaderpiXX
 
                     if (backButtonPressed)
                     {
-                        InstructionManager.HasDoneInstructions = true;
-                        gameState = GameStates.MainMenu;
+                        if (!instructionManager.HasDoneInstructions && instructionManager.EnougthInstructionsDone)
+                        {
+                            instructionManager.InstructionsDone();
+                            instructionManager.SaveHasDoneInstructions();
+                        }
+
+                        EffectManager.Reset();
+                        if (instructionManager.IsAutostarted)
+                        {
+                            resetGame();
+                            hud.Update(playerManager.PlayerScore,
+                                       playerManager.LivesRemaining,
+                                       levelManager.CurrentLevel);
+                            gameState = GameStates.Playing;
+                        }
+                        else
+                        {
+                            gameState = GameStates.MainMenu;
+                        }
                     }
 
                     break;
@@ -1066,7 +1098,7 @@ namespace VaderpiXX
             if (gameState != GameStates.Playing &&
                 gameState != GameStates.WaitForNextRound &&
                 gameState != GameStates.GameOver &&
-                gameState != GameStates.Inscructions &&
+                gameState != GameStates.Instructions &&
                 gameState != GameStates.PlayerDead)
             {
                 SoundManager.StopUfoHighpitchSound();
@@ -1160,7 +1192,7 @@ namespace VaderpiXX
                 submissionManager.Draw(spriteBatch);
             }
 
-            if (gameState == GameStates.Inscructions)
+            if (gameState == GameStates.Instructions)
             {
                 starFieldManager1.Draw(spriteBatch);
                 starFieldManager2.Draw(spriteBatch);

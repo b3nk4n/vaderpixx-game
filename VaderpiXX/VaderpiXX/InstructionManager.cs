@@ -24,7 +24,7 @@ namespace VaderpiXX
             ReachBottom, 
             KillUfo,
             GoodLuck, 
-            ReturnWithBackButton};
+            Finished};
 
         private InstructionStates state = InstructionStates.Welcome;
 
@@ -38,6 +38,8 @@ namespace VaderpiXX
         private const float KillEnemiesLimit = 39.0f;
         private const float ReachBottomLimit = 42.0f;
         private const float KillUfoLimit = 45.0f;
+        private const float GoodLuckLimit = 48.0f;
+        private const float FinishedLimit = 51.0f;
 
         private SpriteFont font;
 
@@ -91,8 +93,16 @@ namespace VaderpiXX
         private readonly string KillUfoText = "KILL THE MOTHERSHIP FOR BONUS SCORE!";
         private readonly string GoodLuckText = "GOOD LUCK COMMANDER!";
         private readonly string ReturnWithBackButtonText = "PRESS  B A C K  TO RETURN...";
+        private readonly string ContinueWithBackButtonText = "PRESS  B A C K  TO START THE GAME...";
 
-        private static bool hasDoneInstructions = false;
+        private bool hasDoneInstructions = false;
+
+        private const string OLD_INSTRUCTION_FILE = "instructions2.txt";
+        private const string INSTRUCTION_FILE = "instructions3.txt";
+
+        private bool isInvalidated = false;
+
+        private bool isAutostarted;
 
         #endregion
 
@@ -134,13 +144,12 @@ namespace VaderpiXX
 
             if (playerManager.IsDestroyed)
             {
-                this.state = InstructionStates.ReturnWithBackButton;
+                this.state = InstructionStates.Finished;
 
                 asteroidManager.Update(gameTime);
                 if (!enemyManager.ReachedBottom())
                     enemyManager.Update(gameTime);
                 collisionManager.Update();
-                return;
             }
             else if (enemyManager.ReachedBottom())
             {
@@ -210,9 +219,17 @@ namespace VaderpiXX
                 asteroidManager.Update(gameTime);
                 enemyManager.Update(gameTime);
             }
-            else
+            else if (progressTimer < GoodLuckLimit)
             {
                 this.state = InstructionStates.GoodLuck;
+
+                asteroidManager.Update(gameTime);
+                enemyManager.Update(gameTime);
+                collisionManager.Update();
+            }
+            else
+            {
+                this.state = InstructionStates.Finished;
 
                 asteroidManager.Update(gameTime);
                 enemyManager.Update(gameTime);
@@ -392,11 +409,15 @@ namespace VaderpiXX
                     drawLimeCenteredText(spriteBatch, GoodLuckText);
                     break;
 
-                case InstructionStates.ReturnWithBackButton:
+                case InstructionStates.Finished:
                     asteroidManager.Draw(spriteBatch);
                     enemyManager.Draw(spriteBatch);
+                    playerManager.Draw(spriteBatch);
 
-                    drawLimeCenteredText(spriteBatch, ReturnWithBackButtonText);
+                    if (isAutostarted)
+                        drawLimeCenteredText(spriteBatch, ContinueWithBackButtonText);
+                    else
+                        drawLimeCenteredText(spriteBatch, ReturnWithBackButtonText);
                     break;
             }
         }
@@ -410,14 +431,26 @@ namespace VaderpiXX
                                    Color.Lime);
         }
 
+        public void InstructionsDone()
+        {
+            if (!hasDoneInstructions)
+            {
+                hasDoneInstructions = true;
+                isInvalidated = true;
+            }
+        }
+
         public void Reset()
         {
             this.progressTimer = 0.0f;
             this.state = InstructionStates.Welcome;
+            this.isAutostarted = false;
         }
 
         public void SaveHasDoneInstructions()
         {
+            if (!isInvalidated)
+                return;
 
             using (IsolatedStorageFile isf = IsolatedStorageFile.GetUserStoreForApplication())
             {
@@ -442,6 +475,8 @@ namespace VaderpiXX
 
                 using (IsolatedStorageFileStream isfs = new IsolatedStorageFileStream(@"instructions2.txt", FileMode.OpenOrCreate, FileAccess.ReadWrite, isf))
                 {
+                    isInvalidated = false;
+
                     if (hasExisted)
                     {
                         using (StreamReader sr = new StreamReader(isfs))
@@ -473,20 +508,24 @@ namespace VaderpiXX
         public void Activated(StreamReader reader)
         {
             this.progressTimer = Single.Parse(reader.ReadLine());
-            hasDoneInstructions = Boolean.Parse(reader.ReadLine());
+            this.hasDoneInstructions = Boolean.Parse(reader.ReadLine());
+            this.isInvalidated = Boolean.Parse(reader.ReadLine());
+            this.isAutostarted = Boolean.Parse(reader.ReadLine());
         }
 
         public void Deactivated(StreamWriter writer)
         {
             writer.WriteLine(progressTimer);
             writer.WriteLine(hasDoneInstructions);
+            writer.WriteLine(isInvalidated);
+            writer.WriteLine(isAutostarted);
         }
 
         #endregion
 
         #region Properties
 
-        public static bool HasDoneInstructions
+        public bool HasDoneInstructions
         {
             get
             {
@@ -495,6 +534,26 @@ namespace VaderpiXX
             set
             {
                 hasDoneInstructions = value;
+            }
+        }
+
+        public bool IsAutostarted
+        {
+            set
+            {
+                this.isAutostarted = value;
+            }
+            get
+            {
+                return this.isAutostarted;
+            }
+        }
+
+        public bool EnougthInstructionsDone
+        {
+            get
+            {
+                return (progressTimer > 5.0f);
             }
         }
 

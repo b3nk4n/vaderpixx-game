@@ -87,6 +87,8 @@ namespace VaderpiXX
                                                                 20, 20);
         private readonly Vector2 arrowPosition = new Vector2(585, 397);
 
+        private bool isInvalidated = false;
+
         #endregion
 
         #region Constructors
@@ -159,23 +161,23 @@ namespace VaderpiXX
 
         private void handleTouchInputs()
         {
-            // Music
-            if (GameInput.IsPressed(MusicAction))
-            {
-                toggleMusic();
-            }
-            // Sfx
-            if (GameInput.IsPressed(SfxAction))
-            {
-                toggleSfx();
-            }
             // Vibration
             if (GameInput.IsPressed(VibrationAction))
             {
                 toggleVibration();
             }
+            // Music
+            else if (GameInput.IsPressed(MusicAction))
+            {
+                toggleMusic();
+            }
+            // Sfx
+            else if (GameInput.IsPressed(SfxAction))
+            {
+                toggleSfx();
+            }
             // ControlPosition
-            if (GameInput.IsPressed(ControlPositionAction))
+            else if (GameInput.IsPressed(ControlPositionAction))
             {
                 ToggleControlType();
             }
@@ -204,7 +206,7 @@ namespace VaderpiXX
                     musicValue = SoundValues.Off;
                     break;
             }
-
+            isInvalidated = true;
             SoundManager.RefreshMusicVolume();
         }
 
@@ -231,7 +233,7 @@ namespace VaderpiXX
                     sfxValue = SoundValues.Off;
                     break;
             }
-
+            isInvalidated = true;
             if (sfxValue != SoundValues.Off)
                 SoundManager.PlayPlayerShot();
         }
@@ -247,7 +249,7 @@ namespace VaderpiXX
                     vibrationValue = VibrationValues.Off;
                     break;
             }
-
+            isInvalidated = true;
             if (vibrationValue == VibrationValues.On)
                 VibrationManager.Vibrate(0.2f);
         }
@@ -268,6 +270,7 @@ namespace VaderpiXX
                 default:
                     break;
             }
+            isInvalidated = true;
         }
 
         private void drawMusic(SpriteBatch spriteBatch)
@@ -425,6 +428,9 @@ namespace VaderpiXX
 
         public void Save()
         {
+            if (!isInvalidated)
+                return;
+
             using (IsolatedStorageFile isf = IsolatedStorageFile.GetUserStoreForApplication())
             {
                 using (IsolatedStorageFileStream isfs = new IsolatedStorageFileStream("settings.txt", FileMode.Create, isf))
@@ -451,6 +457,8 @@ namespace VaderpiXX
 
                 using (IsolatedStorageFileStream isfs = new IsolatedStorageFileStream(@"settings.txt", FileMode.OpenOrCreate, FileAccess.ReadWrite, isf))
                 {
+                    isInvalidated = false;
+
                     if (hasExisted)
                     {
                         using (StreamReader sr = new StreamReader(isfs))
@@ -544,6 +552,22 @@ namespace VaderpiXX
                 default:
                     return true;
             }
+        }
+
+        #endregion
+
+        #region Activate/Deactivate
+
+        public void Activated(StreamReader reader)
+        {
+            opacity = Single.Parse(reader.ReadLine());
+            isInvalidated = Boolean.Parse(reader.ReadLine());
+        }
+
+        public void Deactivated(StreamWriter writer)
+        {
+            writer.WriteLine(opacity);
+            writer.WriteLine(isInvalidated);
         }
 
         #endregion
