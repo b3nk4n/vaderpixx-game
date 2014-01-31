@@ -52,7 +52,11 @@
     <XnaCompressContent>false</XnaCompressContent>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.Advertising.Mobile.Xna, Version=5.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
+    <Reference Include="AdDuplex.Xna">
+      <HintPath>..\..\..\..\..\lib\adduplex-xna-v.1.2.3\AdDuplex.Xna.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Advertising.Mobile, Version=6.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.Advertising.Mobile.Xna, Version=6.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.Devices.Sensors, Version=7.0.0.0, Culture=neutral, PublicKeyToken=24eec0d8c86cda1e, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.Phone, Version=7.0.0.0, Culture=neutral, PublicKeyToken=24eec0d8c86cda1e, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.Xna.Framework" />
@@ -92,6 +96,8 @@
     <Compile Include="LevelManager.cs" />
     <Compile Include="MainMenuManager.cs" />
     <Compile Include="MD5.cs" />
+    <Compile Include="Nokia\FeedbackHelper.cs" />
+    <Compile Include="Nokia\StorageHelper.cs" />
     <Compile Include="Particle.cs" />
     <Compile Include="PlayerManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -102,9 +108,11 @@
     <Compile Include="ZoomTextManager.cs" />
     <None Include="Properties\AppManifest.xml">
       <XnaPlatformSpecific>true</XnaPlatformSpecific>
+      <SubType>Designer</SubType>
     </None>
     <None Include="Properties\WMAppManifest.xml">
       <XnaPlatformSpecific>true</XnaPlatformSpecific>
+      <SubType>Designer</SubType>
     </None>
     <Compile Include="Program.cs" />
     <Compile Include="SettingsManager.cs" />
@@ -126,8 +134,9 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VaderpiXXContent\VaderpiXXContent.contentproj">
-      <Name>VaderpiXXContent</Name>
+      <Name>VaderpiXXContent %28Content%29</Name>
       <XnaReferenceType>Content</XnaReferenceType>
+      <Project>{3A64A3B0-DD3F-478A-BFAD-E4AA4FEDE2EC}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

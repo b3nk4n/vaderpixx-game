@@ -343,7 +343,7 @@ namespace VaderpiXX
         {
             #if DEBUG
 
-            if (state.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.D1))
+            /*if (state.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.D1))
             {
                 fireShot();
             }
@@ -370,7 +370,7 @@ namespace VaderpiXX
             if (state.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.D5))
             {
                 fireCarliRocket();
-            }
+            }*/
 
             Vector2 velo = Vector2.Zero;
 

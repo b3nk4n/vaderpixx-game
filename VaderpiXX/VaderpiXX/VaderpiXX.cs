@@ -10,6 +10,8 @@ using System.IO.IsolatedStorage;
 using System.IO;
 using VaderpiXX.Inputs;
 using Microsoft.Advertising.Mobile.Xna;
+using AdDuplex.Xna;
+using VaderpiXX.Nokia;
 
 namespace VaderpiXX
 {
@@ -24,8 +26,10 @@ namespace VaderpiXX
         /// <summary>
         /// Advertising stuff
         /// </summary>
-        static AdGameComponent adGameComponent;
-        static DrawableAd bannerAd;
+        private AdGameComponent adGameComponent;
+        private DrawableAd bannerAd;
+        private AdManager dpManager;
+        private bool isAdDuplexActive = false;
 
         private const string HighscoreText = "PERSONAL HIGHSCORE!";
         private const string GameOverText = "GAME OVER!";
@@ -210,6 +214,8 @@ namespace VaderpiXX
 
             loadVersion();
 
+            FeedbackHelper.Default.Initialise();
+
             base.Initialize();
         }
 
@@ -229,6 +235,7 @@ namespace VaderpiXX
             bannerAd = adGameComponent.CreateAd("92278", new Rectangle(160, 0, 480, 80));
 #endif       
             bannerAd.BorderEnabled = false;
+            bannerAd.ErrorOccurred += bannerAd_ErrorOccurred;
 
             spriteSheet = Content.Load<Texture2D>(@"Textures\SpriteSheet");
             menuSheet = Content.Load<Texture2D>(@"Textures\MenuSheet");
@@ -343,6 +350,16 @@ namespace VaderpiXX
             SettingsManager.GameInput = gameInput;
 
             setupInputs();
+
+            // ad duplex
+            dpManager = new AdManager(this, "62359");
+            dpManager.LoadContent();
+        }
+
+        void bannerAd_ErrorOccurred(object sender, Microsoft.Advertising.AdErrorEventArgs e)
+        {
+            // If loading of banner is failed, load an ad duplex banner.
+            isAdDuplexActive = true;
         }
 
         private void setupInputs()
@@ -471,6 +488,10 @@ namespace VaderpiXX
         ///// </summary>
         void GameActivated(object sender, ActivatedEventArgs e)
         {
+            // no data loading if resuming from DORMANT state
+            if (e.IsApplicationInstancePreserved)
+                return;
+
             tryLoadGame();
         }
 
@@ -587,7 +608,10 @@ namespace VaderpiXX
                 gameState == GameStates.Submittion ||
                 (gameState == GameStates.Playing && !touchedToStart))
             {
-                adGameComponent.Update(gameTime);
+                if (isAdDuplexActive)
+                    dpManager.Update(gameTime);
+                else
+                    adGameComponent.Update(gameTime);
             }
 
             gameInput.BeginUpdate();
@@ -1288,10 +1312,24 @@ namespace VaderpiXX
                 gameState == GameStates.Submittion ||
                 (gameState == GameStates.Playing && !touchedToStart))
             {
-                adGameComponent.Draw(gameTime);
+                if (!isAdDuplexActive)
+                    adGameComponent.Draw(gameTime);
             }
 
             spriteBatch.End();
+
+            // AdDuplex (must be AFTER End())
+            if (gameState == GameStates.Help ||
+                gameState == GameStates.MainMenu ||
+                gameState == GameStates.Paused ||
+                gameState == GameStates.Settings ||
+                gameState == GameStates.TitleScreen ||
+                gameState == GameStates.Submittion ||
+                (gameState == GameStates.Playing && !touchedToStart))
+            {
+                if (isAdDuplexActive)
+                    dpManager.Draw(spriteBatch, new Vector2(160, 0));
+            }
 
             base.Draw(gameTime);
         }
